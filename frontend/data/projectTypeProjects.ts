@@ -10,26 +10,22 @@ export type ProjectTypeEntry = {
   sourceUrl?: string;
 };
 
-const COMPLETED_SOURCE_URL = 'https://nha.gov.bd/pages/static-pages/6922dbbc933eb65569e0c2e7';
-
 const completedPlotProjects: ProjectTypeEntry[] = completedProjects
-  .filter((project) => project.plots !== '—')
+  .filter((project) => project.kind === 'plot')
   .map((project) => ({
-    id: `completed-${project.serial}`,
+    id: project.id,
     name: project.name,
     status: 'সমাপ্ত',
-    detail: `${project.plots}টি প্লট · সমাপ্তির সন ${project.year}`,
-    sourceUrl: COMPLETED_SOURCE_URL,
+    detail: `${project.quantity} · ${project.duration}`,
   }));
 
 const completedFlatProjects: ProjectTypeEntry[] = completedProjects
-  .filter((project) => project.flats !== '—')
+  .filter((project) => project.kind === 'flat')
   .map((project) => ({
-    id: `completed-${project.serial}`,
+    id: project.id,
     name: project.name,
     status: 'সমাপ্ত',
-    detail: `${project.flats}টি ফ্ল্যাট · সমাপ্তির সন ${project.year}`,
-    sourceUrl: COMPLETED_SOURCE_URL,
+    detail: `${project.quantity} · ${project.duration}`,
   }));
 
 const toOngoingEntry = (project: (typeof ongoingProjects)[number], type: 'প্লট' | 'ফ্ল্যাট'): ProjectTypeEntry => ({
@@ -60,6 +56,6 @@ export const flatProjects = [
 ];
 
 export const projectTypeSummaries = {
-  plot: { total: '৩০', completed: '২২', ongoing: '৬', future: '২', units: '৫,০৯০', unitLabel: 'সমাপ্ত প্রকল্পের প্লট' },
-  flat: { total: '২৮', completed: '১২', ongoing: '৮', future: '৮', units: '২,৪৫৯', unitLabel: 'সমাপ্ত প্রকল্পের ফ্ল্যাট' },
+  plot: { total: '৪১', completed: '৩৩', ongoing: '৬', future: '২', units: '৬,০২৪', unitLabel: 'সমাপ্ত প্রকল্পের প্লট' },
+  flat: { total: '৩৯', completed: '২৩', ongoing: '৮', future: '৮', units: '৬,৯১৮', unitLabel: 'সমাপ্ত প্রকল্পের ফ্ল্যাট' },
 };
