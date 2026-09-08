@@ -1,0 +1,384 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+  LOCKED
+}
+
+enum PhotoStatus {
+  UPLOADED
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+enum PresentationStatus {
+  DRAFT
+  GENERATED
+  ARCHIVED
+}
+
+enum PhotoVersionKind {
+  OPTIMIZED
+  THUMBNAIL
+  ORIGINAL
+}
+
+model User {
+  id                 String               @id @default(uuid()) @db.Uuid
+  email              String               @unique
+  displayName        String               @map("display_name")
+  passwordHash       String               @map("password_hash")
+  department         String?
+  status             UserStatus           @default(ACTIVE)
+  failedLoginCount   Int                  @default(0) @map("failed_login_count")
+  lockedUntil        DateTime?            @map("locked_until")
+  lastLoginAt        DateTime?            @map("last_login_at")
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  deletedAt          DateTime?            @map("deleted_at")
+  roles              UserRole[]
+  refreshSessions    RefreshSession[]
+  passwordResetTokens PasswordResetToken[]
+  projects           Project[]            @relation("ProjectCreator")
+  events             Event[]              @relation("EventCreator")
+  photos             Photo[]              @relation("PhotoUploader")
+  reviewedPhotos     Photo[]              @relation("PhotoReviewer")
+  presentations      Presentation[]
+  auditLogs          AuditLog[]
+  downloadLogs       DownloadLog[]
+  @@map("users")
+}
+
+model Role {
+  id          String           @id @default(uuid()) @db.Uuid
+  name        String           @unique
+  description String?
+  isSystem    Boolean          @default(false) @map("is_system")
+  users       UserRole[]
+  permissions RolePermission[]
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid()) @db.Uuid
+  code        String           @unique
+  description String?
+  roles       RolePermission[]
+  @@map("permissions")
+}
+
+model UserRole {
+  userId String @db.Uuid @map("user_id")
+  roleId String @db.Uuid @map("role_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  roleId       String     @db.Uuid @map("role_id")
+  permissionId String     @db.Uuid @map("permission_id")
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model RefreshSession {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  userAgent String?   @map("user_agent")
+  ipAddress String?   @map("ip_address")
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, expiresAt])
+  @@map("refresh_sessions")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("password_reset_tokens")
+}
+
+model ProjectType {
+  id       String    @id @default(uuid()) @db.Uuid
+  name     String    @unique
+  projects Project[]
+  @@map("project_types")
+}
+
+model ProjectStatus {
+  id       String    @id @default(uuid()) @db.Uuid
+  name     String    @unique
+  projects Project[]
+  @@map("project_statuses")
+}
+
+model Project {
+  id                 String        @id @default(uuid()) @db.Uuid
+  projectCode        String        @unique @map("project_code")
+  projectName        String        @map("project_name")
+  projectTypeId      String        @db.Uuid @map("project_type_id")
+  projectStatusId    String        @db.Uuid @map("project_status_id")
+  location           String
+  description        String?
+  startDate          DateTime?     @db.Date @map("start_date")
+  endDate            DateTime?     @db.Date @map("end_date")
+  responsibleOfficer String?       @map("responsible_officer")
+  coverPhotoId       String?       @db.Uuid @map("cover_photo_id")
+  createdById        String        @db.Uuid @map("created_by")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+  deletedAt          DateTime?     @map("deleted_at")
+  projectType        ProjectType   @relation(fields: [projectTypeId], references: [id])
+  projectStatus      ProjectStatus @relation(fields: [projectStatusId], references: [id])
+  createdBy          User          @relation("ProjectCreator", fields: [createdById], references: [id])
+  events             Event[]
+  photos             Photo[]       @relation("ProjectPhotos")
+  coverPhoto         Photo?        @relation("ProjectCover", fields: [coverPhotoId], references: [id], onDelete: SetNull)
+  @@index([projectStatusId, startDate])
+  @@map("projects")
+}
+
+model EventType {
+  id     String  @id @default(uuid()) @db.Uuid
+  name   String  @unique
+  events Event[]
+  @@map("event_types")
+}
+
+model ActivityType {
+  id     String  @id @default(uuid()) @db.Uuid
+  name   String  @unique
+  events Event[]
+  @@map("activity_types")
+}
+
+model Event {
+  id                 String       @id @default(uuid()) @db.Uuid
+  eventCode          String       @unique @map("event_code")
+  eventName          String       @map("event_name")
+  eventTypeId        String       @db.Uuid @map("event_type_id")
+  activityTypeId     String?      @db.Uuid @map("activity_type_id")
+  projectId          String?      @db.Uuid @map("project_id")
+  eventDate          DateTime     @db.Date @map("event_date")
+  location           String
+  department         String?
+  responsibleOfficer String?      @map("responsible_officer")
+  description        String?
+  createdById        String       @db.Uuid @map("created_by")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+  deletedAt          DateTime?    @map("deleted_at")
+  eventType          EventType    @relation(fields: [eventTypeId], references: [id])
+  activityType       ActivityType? @relation(fields: [activityTypeId], references: [id])
+  project            Project?     @relation(fields: [projectId], references: [id])
+  createdBy          User         @relation("EventCreator", fields: [createdById], references: [id])
+  photos             Photo[]
+  @@index([projectId, eventDate])
+  @@index([eventDate])
+  @@map("events")
+}
+
+model Photo {
+  id                 String       @id @default(uuid()) @db.Uuid
+  systemFileName     String       @map("system_file_name")
+  originalFileName   String       @map("original_file_name")
+  storageKey         String       @unique @map("storage_key")
+  thumbnailKey       String       @unique @map("thumbnail_key")
+  originalStorageKey String?      @unique @map("original_storage_key")
+  retainOriginal     Boolean      @default(false) @map("retain_original")
+  mimeType           String       @map("mime_type")
+  fileSize           BigInt       @map("file_size")
+  width              Int
+  height             Int
+  sha256Hash         String       @unique @map("sha256_hash")
+  perceptualHash     String?      @map("perceptual_hash")
+  title              String
+  description        String?
+  captureDate        DateTime     @db.Date @map("capture_date")
+  location           String?
+  photographer       String?
+  department         String?
+  gpsLatitude        Decimal?     @db.Decimal(9, 6) @map("gps_latitude")
+  gpsLongitude       Decimal?     @db.Decimal(9, 6) @map("gps_longitude")
+  remarks            String?
+  projectId          String?      @db.Uuid @map("project_id")
+  eventId            String?      @db.Uuid @map("event_id")
+  uploadedById       String       @db.Uuid @map("uploaded_by")
+  reviewedById       String?      @db.Uuid @map("reviewed_by")
+  reviewNote         String?      @map("review_note")
+  reviewedAt         DateTime?    @map("reviewed_at")
+  status             PhotoStatus  @default(PENDING_REVIEW)
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+  deletedAt          DateTime?    @map("deleted_at")
+  project            Project?     @relation("ProjectPhotos", fields: [projectId], references: [id])
+  coveredProjects    Project[]    @relation("ProjectCover")
+  event              Event?       @relation(fields: [eventId], references: [id])
+  uploadedBy         User         @relation("PhotoUploader", fields: [uploadedById], references: [id])
+  reviewedBy         User?        @relation("PhotoReviewer", fields: [reviewedById], references: [id])
+  versions           PhotoVersion[]
+  tags               PhotoTag[]
+  presentationPhotos PresentationPhoto[]
+  downloadLogs       DownloadLog[]
+  @@index([status, captureDate(sort: Desc)])
+  @@index([projectId, status, captureDate(sort: Desc)])
+  @@index([eventId, status, captureDate(sort: Desc)])
+  @@index([uploadedById])
+  @@index([createdAt(sort: Desc)])
+  @@map("photos")
+}
+
+model PhotoVersion {
+  id         String           @id @default(uuid()) @db.Uuid
+  photoId    String           @db.Uuid @map("photo_id")
+  kind       PhotoVersionKind
+  storageKey String           @map("storage_key")
+  mimeType   String           @map("mime_type")
+  fileSize   BigInt           @map("file_size")
+  width      Int
+  height     Int
+  createdAt  DateTime         @default(now()) @map("created_at")
+  photo      Photo            @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  @@unique([photoId, kind])
+  @@map("photo_versions")
+}
+
+model Tag {
+  id     String     @id @default(uuid()) @db.Uuid
+  name   String     @unique
+  photos PhotoTag[]
+  @@map("tags")
+}
+
+model PhotoTag {
+  photoId String @db.Uuid @map("photo_id")
+  tagId   String @db.Uuid @map("tag_id")
+  photo   Photo  @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  @@id([photoId, tagId])
+  @@index([tagId, photoId])
+  @@map("photo_tags")
+}
+
+model PresentationTemplate {
+  id          String         @id @default(uuid()) @db.Uuid
+  name        String         @unique
+  description String?
+  layout      Json
+  isActive    Boolean        @default(true) @map("is_active")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  presentations Presentation[]
+  @@map("presentation_templates")
+}
+
+model Presentation {
+  id          String             @id @default(uuid()) @db.Uuid
+  title       String
+  subtitle    String?
+  templateId  String             @db.Uuid @map("template_id")
+  createdById String             @db.Uuid @map("created_by")
+  status      PresentationStatus @default(DRAFT)
+  archiveKey  String?            @map("archive_key")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+  template    PresentationTemplate @relation(fields: [templateId], references: [id])
+  createdBy   User               @relation(fields: [createdById], references: [id])
+  slides      PresentationSlide[]
+  @@index([createdById, updatedAt(sort: Desc)])
+  @@map("presentations")
+}
+
+model PresentationSlide {
+  id             String              @id @default(uuid()) @db.Uuid
+  presentationId String              @db.Uuid @map("presentation_id")
+  position       Int
+  title          String?
+  caption        String?
+  notes          String?
+  presentation   Presentation        @relation(fields: [presentationId], references: [id], onDelete: Cascade)
+  photos         PresentationPhoto[]
+  @@unique([presentationId, position])
+  @@map("presentation_slides")
+}
+
+model PresentationPhoto {
+  slideId  String            @db.Uuid @map("slide_id")
+  photoId  String            @db.Uuid @map("photo_id")
+  position Int               @default(0)
+  slide    PresentationSlide @relation(fields: [slideId], references: [id], onDelete: Cascade)
+  photo    Photo             @relation(fields: [photoId], references: [id])
+  @@id([slideId, photoId])
+  @@map("presentation_photos")
+}
+
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  userId     String?  @db.Uuid @map("user_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([entityType, entityId])
+  @@index([createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+model DownloadLog {
+  id        BigInt   @id @default(autoincrement())
+  userId    String   @db.Uuid @map("user_id")
+  photoId   String?  @db.Uuid @map("photo_id")
+  kind      String
+  itemCount Int      @default(1) @map("item_count")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+  photo     Photo?   @relation(fields: [photoId], references: [id])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("download_logs")
+}
+
+model StorageLog {
+  id              BigInt   @id @default(autoincrement())
+  primaryBytes    BigInt   @map("primary_bytes")
+  availableBytes  BigInt?  @map("available_bytes")
+  photoCount      Int      @map("photo_count")
+  recordedAt      DateTime @default(now()) @map("recorded_at")
+  @@index([recordedAt(sort: Desc)])
+  @@map("storage_logs")
+}
+
+model SystemSetting {
+  key         String   @id
+  value       String
+  description String?
+  isSecret    Boolean  @default(false) @map("is_secret")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  @@map("system_settings")
+}

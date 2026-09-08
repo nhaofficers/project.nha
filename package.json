@@ -1,0 +1,21 @@
+{
+  "name": "nha-dpams",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @nha/backend --filter @nha/frontend dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "prisma:generate": "pnpm --filter @nha/backend prisma:generate",
+    "prisma:migrate": "pnpm --filter @nha/backend prisma:migrate",
+    "prisma:seed": "pnpm --filter @nha/backend prisma:seed"
+  },
+  "devDependencies": {
+    "@prisma/client": "^6.15.0",
+    "argon2": "^0.44.0",
+    "prisma": "^6.15.0",
+    "readable-stream": "2.3.8",
+    "semver": "7.8.5"
+  }
+}

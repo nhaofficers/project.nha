@@ -1,0 +1,1 @@
+'use client';import {useParams} from 'next/navigation';import PresentationBuilder from '@/components/PresentationBuilder';export default function EditPresentation(){const {id}=useParams<{id:string}>();return <PresentationBuilder id={id}/>}

@@ -1,0 +1,15 @@
+node_modules/
+.pnpm-store/
+.runtime/
+.next/
+dist/
+coverage/
+.env
+storage/photos/
+storage/thumbnails/
+storage/originals/
+storage/temp/
+storage/backups/
+*.log
+*.zip
+*.pptx

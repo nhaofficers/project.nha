@@ -1,0 +1,1 @@
+'use client';import {useParams} from 'next/navigation';import EventForm from '@/components/EventForm';export default function EditEvent(){const {id}=useParams<{id:string}>();return <EventForm id={id}/>}

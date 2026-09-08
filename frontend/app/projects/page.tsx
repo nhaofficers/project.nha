@@ -1,0 +1,2 @@
+import ResourcePage from '@/components/ResourcePage';
+export default function Projects(){return <ResourcePage title="প্রকল্পসমূহ" description="জাতীয় গৃহায়ন কর্তৃপক্ষের আবাসন কর্মসূচি ও উন্নয়ন উদ্যোগ।" endpoint="/projects" nameKey="projectName" createHref="/projects/create" detailBase="/projects" columns={[["কোড","projectCode"],["প্রকল্প","projectName"],["অবস্থান","location"],["অবস্থা","projectStatus"]]}/>}
