@@ -33,7 +33,7 @@ export default function ProjectTypePage({ kind, title, subtitle, total, complete
       <div className="type-list-grid">{projects.map((project, index) => <article className="type-list-card" key={project.id}>
         <div className="type-list-number">{(index + 1).toLocaleString('bn-BD', { minimumIntegerDigits: 2 })}</div>
         <div><span className={`type-status status-${project.status === 'সমাপ্ত' ? 'completed' : project.status === 'চলমান' ? 'ongoing' : 'future'}`}>{project.status}</span><h3>{project.name}</h3><p>{project.detail}</p></div>
-        {project.sourceUrl ? <a href={project.sourceUrl} target="_blank" rel="noreferrer" aria-label={`${project.name}—অফিসিয়াল উৎস দেখুন`}>অফিসিয়াল উৎস ↗</a> : <span className="type-document-source">সমন্বিত তালিকা</span>}
+        {project.sourceUrl ? <Link href={project.sourceUrl} aria-label={`${project.name}—বিস্তারিত দেখুন`}>প্রকল্পের বিস্তারিত →</Link> : <span className="type-document-source">সমন্বিত তালিকা</span>}
       </article>)}</div>
       <div className="type-source-note">একই প্রকল্পের নামে প্লট ও ফ্ল্যাট—উভয়টি স্পষ্টভাবে থাকলে সেটি উভয় তালিকায় দেখা যেতে পারে। কেবল সরকারি তালিকায় স্পষ্টভাবে উল্লেখিত ধরন অন্তর্ভুক্ত হয়েছে।</div>
     </section>

@@ -29,11 +29,11 @@ const completedFlatProjects: ProjectTypeEntry[] = completedProjects
   }));
 
 const toOngoingEntry = (project: (typeof ongoingProjects)[number], type: 'প্লট' | 'ফ্ল্যাট'): ProjectTypeEntry => ({
-  id: `ongoing-${project.serial}-${type}`,
+  id: project.id,
   name: project.name,
   status: 'চলমান',
   detail: `${type}ভিত্তিক চলমান প্রকল্প`,
-  sourceUrl: project.sourceUrl,
+  sourceUrl: `/public/ongoing-projects/${project.id}`,
 });
 
 const toFutureEntry = (project: (typeof futureProjects)[number], type: 'প্লট' | 'ফ্ল্যাট'): ProjectTypeEntry => ({
@@ -45,17 +45,17 @@ const toFutureEntry = (project: (typeof futureProjects)[number], type: 'প্�
 
 export const plotProjects = [
   ...completedPlotProjects,
-  ...ongoingProjects.filter((project) => project.name.includes('প্লট')).map((project) => toOngoingEntry(project, 'প্লট')),
+  ...ongoingProjects.filter((project) => project.kind === 'plot').map((project) => toOngoingEntry(project, 'প্লট')),
   ...futureProjects.filter((project) => project.projectType.includes('প্লট')).map((project) => toFutureEntry(project, 'প্লট')),
 ];
 
 export const flatProjects = [
   ...completedFlatProjects,
-  ...ongoingProjects.filter((project) => project.name.includes('ফ্ল্যাট')).map((project) => toOngoingEntry(project, 'ফ্ল্যাট')),
+  ...ongoingProjects.filter((project) => project.kind === 'flat').map((project) => toOngoingEntry(project, 'ফ্ল্যাট')),
   ...futureProjects.filter((project) => project.projectType.includes('ফ্ল্যাট') || project.units.includes('ফ্ল্যাট')).map((project) => toFutureEntry(project, 'ফ্ল্যাট')),
 ];
 
 export const projectTypeSummaries = {
-  plot: { total: '৪১', completed: '৩৩', ongoing: '৬', future: '২', units: '৬,০২৪', unitLabel: 'সমাপ্ত প্রকল্পের প্লট' },
-  flat: { total: '৩৯', completed: '২৩', ongoing: '৮', future: '৮', units: '৬,৯১৮', unitLabel: 'সমাপ্ত প্রকল্পের ফ্ল্যাট' },
+  plot: { total: '৩৯', completed: '৩৩', ongoing: '৪', future: '২', units: '৬,০২৪', unitLabel: 'সমাপ্ত প্রকল্পের প্লট' },
+  flat: { total: '৪১', completed: '২৩', ongoing: '১০', future: '৮', units: '৬,৯১৮', unitLabel: 'সমাপ্ত প্রকল্পের ফ্ল্যাট' },
 };
