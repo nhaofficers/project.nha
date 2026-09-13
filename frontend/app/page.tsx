@@ -22,6 +22,7 @@ export default function PublicHome() {
   const [projects, setProjects] = useState<PublicProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [mapMode, setMapMode] = useState<'projects' | 'estates'>('projects');
 
   useEffect(() => {
     fetch('/api/v1/public/projects')
@@ -45,19 +46,47 @@ export default function PublicHome() {
     <section className="district-map-section" aria-labelledby="district-map-title">
       <div className="public-wrap">
         <div className="public-section-head district-map-heading">
-          <div><span>ভৌগোলিক উপস্থাপন</span><h2 id="district-map-title">জেলাভিত্তিক প্রকল্প মানচিত্র</h2></div>
-          <p>জেলা নির্বাচন করে সমাপ্ত প্রকল্পের তথ্য দেখুন</p>
+          <div><span>ভৌগোলিক উপস্থাপন</span><h2 id="district-map-title">প্রকল্প ও হাউজিং এস্টেট মানচিত্র</h2></div>
+          <p>{mapMode === 'projects' ? 'জেলা নির্বাচন করে সমাপ্ত প্রকল্পের তথ্য দেখুন' : 'জেলা নির্বাচন করে হাউজিং এস্টেটের তথ্য দেখুন'}</p>
+        </div>
+        <div className="map-view-switcher" role="tablist" aria-label="মানচিত্র নির্বাচন করুন">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mapMode === 'projects'}
+            aria-controls="nha-map-panel"
+            className={mapMode === 'projects' ? 'is-active' : ''}
+            onClick={() => setMapMode('projects')}
+          >
+            <span>০১</span>
+            <strong>জেলাভিত্তিক প্রকল্প মানচিত্র</strong>
+            <small>৫৯টি সমাপ্ত প্রকল্প</small>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mapMode === 'estates'}
+            aria-controls="nha-map-panel"
+            className={mapMode === 'estates' ? 'is-active' : ''}
+            onClick={() => setMapMode('estates')}
+          >
+            <span>০২</span>
+            <strong>হাউজিং এস্টেট মানচিত্র</strong>
+            <small>৬৬টি হাউজিং এস্টেট</small>
+          </button>
         </div>
         <div className="district-map-frame">
           <iframe
-            src="/nha-district-map.html?embed=1"
-            title="জাতীয় গৃহায়ন কর্তৃপক্ষের জেলাভিত্তিক প্রকল্প মানচিত্র"
+            id="nha-map-panel"
+            key={mapMode}
+            src={`/nha-district-map.html?embed=1&view=${mapMode}`}
+            title={mapMode === 'projects' ? 'জাতীয় গৃহায়ন কর্তৃপক্ষের জেলাভিত্তিক প্রকল্প মানচিত্র' : 'জাতীয় গৃহায়ন কর্তৃপক্ষের হাউজিং এস্টেট মানচিত্র'}
             loading="lazy"
           />
         </div>
         <div className="district-map-note">
-          <span>মানচিত্রের চিহ্ন বা জেলার অংশে ক্লিক করলে সংশ্লিষ্ট প্রকল্পের তালিকা দেখা যাবে।</span>
-          <a href="/nha-district-map.html#mapView" target="_blank" rel="noreferrer">পূর্ণ পর্দায় দেখুন ↗</a>
+          <span>{mapMode === 'projects' ? 'মানচিত্রের চিহ্ন বা জেলার অংশে ক্লিক করলে সংশ্লিষ্ট প্রকল্পের তালিকা দেখা যাবে।' : 'মানচিত্রের চিহ্নে ক্লিক করলে সংশ্লিষ্ট জেলার হাউজিং এস্টেটের নাম ও অবস্থান দেখা যাবে।'}</span>
+          <a href={`/nha-district-map.html?view=${mapMode}#${mapMode === 'projects' ? 'mapView' : 'estatesView'}`} target="_blank" rel="noreferrer">পূর্ণ পর্দায় দেখুন ↗</a>
         </div>
       </div>
     </section>

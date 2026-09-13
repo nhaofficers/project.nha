@@ -1732,6 +1732,12 @@ navEstates.addEventListener('click', (e)=>{
     renderEstateMarkers();
   }
 });
+
+/* Allow the parent page and direct links to open a specific map view. */
+const initialView = new URLSearchParams(window.location.search).get('view');
+if(initialView === 'estates'){
+  navEstates.click();
+}
 </script>
 </body>
 </html>
