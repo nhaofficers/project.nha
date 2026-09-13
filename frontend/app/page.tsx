@@ -42,6 +42,26 @@ export default function PublicHome() {
       <div className="dashboard-footnote"><span>তথ্য হালনাগাদ</span><p>সমাপ্ত ও চলমান প্রকল্প ২৫ নভেম্বরের প্রদত্ত তালিকা এবং ভবিষ্যৎ প্রকল্প প্রদত্ত সমন্বিত নথির ভিত্তিতে উপস্থাপিত।</p></div>
     </div></section>
 
+    <section className="district-map-section" aria-labelledby="district-map-title">
+      <div className="public-wrap">
+        <div className="public-section-head district-map-heading">
+          <div><span>ভৌগোলিক উপস্থাপন</span><h2 id="district-map-title">জেলাভিত্তিক প্রকল্প মানচিত্র</h2></div>
+          <p>জেলা নির্বাচন করে সমাপ্ত প্রকল্পের তথ্য দেখুন</p>
+        </div>
+        <div className="district-map-frame">
+          <iframe
+            src="/nha-district-map.html?embed=1"
+            title="জাতীয় গৃহায়ন কর্তৃপক্ষের জেলাভিত্তিক প্রকল্প মানচিত্র"
+            loading="lazy"
+          />
+        </div>
+        <div className="district-map-note">
+          <span>মানচিত্রের চিহ্ন বা জেলার অংশে ক্লিক করলে সংশ্লিষ্ট প্রকল্পের তালিকা দেখা যাবে।</span>
+          <a href="/nha-district-map.html#mapView" target="_blank" rel="noreferrer">পূর্ণ পর্দায় দেখুন ↗</a>
+        </div>
+      </div>
+    </section>
+
     <section className="featured-photo-section" id="featured-photos"><div className="public-wrap"><div className="public-section-head"><div><span>বাস্তব চিত্র</span><h2>প্রকল্পের নির্বাচিত ছবিসমূহ</h2></div><div className="photo-summary"><strong>{projects.length.toLocaleString('bn-BD')}</strong><span>টি প্রকল্প</span><strong>{approvedPhotos.toLocaleString('bn-BD')}</strong><span>টি ছবি</span><Link href="/public/photo-archive">আর্কাইভে খুঁজুন →</Link></div></div>{error ? <div className="public-message">{error}</div> : null}{loading ? <div className="public-loading"><span className="spinner"/>ছবি লোড হচ্ছে…</div> : projects.length ? <ProjectPhotoSlider projects={projects}/> : !error ? <div className="public-message">এখনও কোনো অনুমোদিত প্রকল্পের ছবি প্রকাশিত হয়নি।</div> : null}</div></section>
   </main></PublicShell>;
 }
